@@ -1,0 +1,12 @@
+Cats are cute.
+
+Dogs are friendly.
+
+Elephants are the largest land mammals.
+
+Python is a programming language.
+
+The quick brown fox jumps over the lazy fox and then runs into the forest.
+
+
+
