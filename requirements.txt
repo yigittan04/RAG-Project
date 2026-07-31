@@ -9,4 +9,5 @@ ollama
 tqdm
 fastapi
 uvicorn
-pydantic
+groq
+python-dotenv

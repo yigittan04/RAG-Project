@@ -5,7 +5,7 @@ class EmbeddingModel:
     def __init__(self):
 
         self.model = SentenceTransformer(
-            "BAAI/bge-small-en-v1.5"
+            "sentence-transformers/paraphrase-MiniLM-L3-v2"
         )
     
     def embed(self, text: str):
