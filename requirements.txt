@@ -9,4 +9,4 @@ ollama
 tqdm
 fastapi
 uvicorn
-python-dotenv
+pydantic
