@@ -7,3 +7,6 @@ pymupdf
 python-docx
 ollama
 tqdm
+fastapi
+uvicorn
+python-dotenv
