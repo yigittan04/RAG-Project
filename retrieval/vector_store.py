@@ -1,0 +1,44 @@
+import pickle
+import faiss
+import numpy as np
+
+
+class VectorStore:
+
+    def __init__(self):
+
+        self.index = faiss.read_index(
+            "database/faiss_index.bin"
+        )
+
+        with open("database/metadata.pkl", "rb") as f:
+            self.chunks = pickle.load(f)
+
+    def search(self, embedding, top_k=3):
+
+        embedding = np.array([embedding]).astype("float32")
+
+        faiss.normalize_L2(embedding)
+
+        scores, indices = self.index.search(
+            embedding,
+            top_k
+        )
+
+        results = []
+
+        SIMILARITY_THRESHOLD = 0.70
+
+        for score, idx in zip(scores[0], indices[0]):
+
+            if idx == -1:
+                continue
+
+            if score < SIMILARITY_THRESHOLD:
+                continue
+
+            results.append(
+                (float(score), self.chunks[idx])
+            )
+
+        return results

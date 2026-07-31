@@ -1,34 +1,16 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-from groq import Groq
-from dotenv import load_dotenv
-import os
-
-from preprocessing.loader import DocumentLoader
-from preprocessing.cleaner import TextCleaner
-from preprocessing.chunker import TextChunker
+from generation.generator import Generator
 from embeddings.embedding import EmbeddingModel
-from retrieval.retriever import Retriever
-
-load_dotenv()
-
-client = Groq(
-    api_key=os.getenv("GROQ_API_KEY")
-)
+from retrieval.vector_store import VectorStore
 
 app = FastAPI(title="RAG")
 
-print("Loading documents...")
-
-text = DocumentLoader.load("data/test.txt")
-
-clean_text = TextCleaner.clean(text)
-
-chunks = TextChunker.chunk_by_paragraph(clean_text)
+print("Loading vector database...")
 
 model = EmbeddingModel()
 
-embeddings = model.embed_documents(chunks)
+vector_store = VectorStore()
 
 print("Ready.")
 
@@ -42,10 +24,8 @@ def ask(req: Question):
 
     question_embedding = model.embed(req.question)
 
-    retrieved_chunks = Retriever.retrieve(
+    retrieved_chunks = vector_store.search(
         question_embedding,
-        embeddings,
-        chunks,
         top_k=3
     )
 
@@ -53,28 +33,10 @@ def ask(req: Question):
         chunk for _, chunk in retrieved_chunks
     )
 
-    response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[
-            {
-                "role": "system",
-                "content":
-                (
-                    "You are a Retrieval-Augmented Generation assistant. "
-                    "Answer ONLY using the provided context. "
-                    "If the answer is not contained in the context say that you do not know."
-                )
-            },
-            {
-                "role": "user",
-                "content":
-                f"Context:\n{context}\n\nQuestion:\n{req.question}"
-            }
-        ],
-        temperature=0.2
+    answer = Generator.answer(
+        req.question,
+        context
     )
-
-    answer = response.choices[0].message.content
 
     return {
         "question": req.question,
