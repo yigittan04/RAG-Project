@@ -117,3 +117,84 @@ Example response:
   ]
 }
 ```
+
+---
+
+# Deployment
+
+## Live Application
+
+https://rag-project-icjj.onrender.com
+
+Swagger / OpenAPI Documentation:
+
+https://rag-project-icjj.onrender.com/docs
+
+---
+
+## Render Service
+
+- Backend: Render Web Service
+- Database: FAISS vector database
+
+---
+
+## Environment Variables
+
+These environment variables are required:
+
+```
+GROQ_API_KEY
+JINA_API_KEY
+```
+
+---
+
+## Initialization
+
+Before starting the API, generate the FAISS vector index by running:
+
+```bash
+python index.py
+```
+
+Start the application:
+
+```bash
+uvicorn main:app --reload
+```
+
+For production:
+
+```bash
+uvicorn main:app --host 0.0.0.0 --port $PORT
+```
+
+---
+
+## Running Locally
+
+Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+Create a `.env` file containing:
+
+```
+GROQ_API_KEY=...
+JINA_API_KEY=...
+```
+
+Generate the vector database:
+
+```bash
+python index.py
+```
+
+Run the API:
+
+```bash
+uvicorn main:app --reload
+```
