@@ -45,3 +45,10 @@ def ask(req: Question):
             chunk for _, chunk in retrieved_chunks
         ]
     }
+
+@app.get("/")
+def root():
+    return {
+        "message": "RAG API is running.",
+        "docs": "/docs"
+    }
