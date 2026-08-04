@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-from generation.generator import Generator
+from generator.generator import Generator
 from embeddings.embedding import EmbeddingModel
 from retrieval.vector_store import VectorStore
 

@@ -28,8 +28,6 @@ dimension = embeddings.shape[1]
 
 index = faiss.IndexFlatIP(dimension)
 
-faiss.normalize_L2(embeddings)
-
 index.add(embeddings)
 
 os.makedirs("database", exist_ok=True)

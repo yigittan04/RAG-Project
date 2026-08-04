@@ -18,8 +18,6 @@ class VectorStore:
 
         embedding = np.array([embedding]).astype("float32")
 
-        faiss.normalize_L2(embedding)
-
         scores, indices = self.index.search(
             embedding,
             top_k
