@@ -81,11 +81,44 @@ def archive_conversation(
 
 # _____
 
-def create_message()
+def create_message(
+    db: Session,
+    conversation_id,
+    role,
+    content
+):
+    message = Message(
+        conversation_id=conversation_id,
+        role=role,
+        content=content
+    )
 
-def get_messages()
+    db.add(message)
+    db.commit()
+    db.refresh(message)
 
+    return message
 
+def get_messages(
+    db: Session,
+    conversation_id
+):
+    return (
+        db.query(Message)
+        .filter(Message.conversation_id == conversation_id)
+        .order_by(Message.created_at.asc())
+        .all()
+    )
+
+def get_message(
+    db: Session,
+    message_id
+):
+    return (
+        db.query(Message)
+        .filter(Message.id == message_id)
+        .first()
+    )
 
 #___
 
