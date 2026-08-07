@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-
+from datetime import datetime, timezone
 from .models import (
     User,
     Conversation,
@@ -9,18 +9,57 @@ from .models import (
     RetrievalLog
 )
 
-# ___
-def create_user()
 
-def get_user_by_email()
+def create_user(
+    db: Session,
+    username,
+    email,
+    hashed_password
+):
+    user = User(
+        username=username,
+        email=email,
+        hashed_password=hashed_password
+    )
 
-def get_user_by_username()
+    db.add(user)
+    db.commit()
+    db.refresh(user)
 
-def update_last_login()
+    return user
+
+def get_user_by_email(
+    db: Session,
+    email
+):
+    return (
+        db.query(User)
+        .filter(User.email == email)
+        .first()
+    )
+
+def get_user_by_username(
+    db: Session,
+    username
+):
+    return (
+        db.query(User)
+        .filter(User.username == username)
+        .first()
+    )
+
+def update_last_login(
+    db: Session,
+    user: User
+):
+    user.last_login = datetime.now(timezone.utc)
+
+    db.commit()
+    db.refresh(user)
+
+    return user
 
 
-
-# ____
 
 def create_conversation(
     db: Session,
@@ -79,7 +118,7 @@ def archive_conversation(
     return conversation
 
 
-# _____
+
 
 def create_message(
     db: Session,
@@ -120,15 +159,67 @@ def get_message(
         .first()
     )
 
-#___
 
-def create_document()
 
-def get_document()
+def create_document(
+    db: Session,
+    filename,
+    uploaded_by,
+    total_chunks,
+    file_size,
+    mime_type,
+    storage_path,
+    file_hash,
+    status="processed"
+):
+    document = Document(
+        filename=filename,
+        uploaded_by=uploaded_by,
+        total_chunks=total_chunks,
+        file_size=file_size,
+        mime_type=mime_type,
+        storage_path=storage_path,
+        file_hash=file_hash,
+        status=status
+    )
 
-def get_documents()
+    db.add(document)
+    db.commit()
+    db.refresh(document)
 
-#______
+    return document
+
+def get_document(
+    db: Session,
+    document_id
+):
+    return (
+        db.query(Document)
+        .filter(Document.id == document_id)
+        .first()
+    )
+
+def get_documents(
+    db: Session,
+    user_id
+):
+    return (
+        db.query(Document)
+        .filter(Document.uploaded_by == user_id)
+        .order_by(Document.uploaded_at.desc())
+        .all()
+    )
+
+def get_document_by_hash(
+    db: Session,
+    file_hash
+):
+    return (
+        db.query(Document)
+        .filter(Document.file_hash == file_hash)
+        .first()
+    )
+
 
 
 def create_chunk()
