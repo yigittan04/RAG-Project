@@ -8,10 +8,10 @@ class VectorStore:
     def __init__(self):
 
         self.index = faiss.read_index(
-            "database/faiss_index.bin"
+            "vector_store/faiss_index.bin"
         )
 
-        with open("database/metadata.pkl", "rb") as f:
+        with open("vector_store/metadata.pkl", "rb") as f:
             self.chunks = pickle.load(f)
 
     def search(self, embedding, top_k=3):

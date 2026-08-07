@@ -3,6 +3,10 @@ from pydantic import BaseModel
 from generator.generator import Generator
 from embeddings.embedding import EmbeddingModel
 from retrieval.vector_store import VectorStore
+from database.database import engine
+from database.models import Base
+
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="RAG")
 

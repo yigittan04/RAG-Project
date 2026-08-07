@@ -1,3 +1,5 @@
 #!/bin/bash
 
-python app.py
+chmod +x run.sh
+
+uvicorn main:app --reload

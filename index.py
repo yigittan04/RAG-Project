@@ -30,11 +30,11 @@ index = faiss.IndexFlatIP(dimension)
 
 index.add(embeddings)
 
-os.makedirs("database", exist_ok=True)
+os.makedirs("vector_store", exist_ok=True)
 
-faiss.write_index(index, "database/faiss_index.bin")
+faiss.write_index(index, "vector_store/faiss_index.bin")
 
-with open("database/metadata.pkl", "wb") as f:
+with open("vector_store/metadata.pkl", "wb") as f:
     pickle.dump(chunks, f)
 
 print("Index saved.")
