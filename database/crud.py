@@ -222,14 +222,57 @@ def get_document_by_hash(
 
 
 
-def create_chunk()
+def create_chunk(
+    db: Session,
+    document_id,
+    chunk_index,
+    page_number,
+    content
+):
+    chunk = Chunk(
+        document_id=document_id,
+        chunk_index=chunk_index,
+        page_number=page_number,
+        content=content
+    )
 
-def get_chunks()
+    db.add(chunk)
+    db.commit()
+    db.refresh(chunk)
+
+    return chunk
+
+def get_chunks(
+    db: Session,
+    document_id
+):
+    return (
+        db.query(Chunk)
+        .filter(Chunk.document_id == document_id)
+        .order_by(Chunk.chunk_index.asc())
+        .all()
+    )
 
 
-# ____
 
+def create_retrieval_log(
+    db: Session,
+    message_id,
+    chunk_id,
+    similarity,
+    latency_ms,
+    rank
+):
+    retrieval_log = RetrievalLog(
+        message_id=message_id,
+        chunk_id=chunk_id,
+        similarity=similarity,
+        latency_ms=latency_ms,
+        rank=rank
+    )
 
+    db.add(retrieval_log)
+    db.commit()
+    db.refresh(retrieval_log)
 
-
-def create_retrieval_log()
+    return retrieval_log
