@@ -12,7 +12,7 @@ client = Groq(
 class Generator:
 
     @staticmethod
-    def answer(question: str, context: str):
+    def answer(prompt: str):
 
         response = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
@@ -22,14 +22,15 @@ class Generator:
                     "content":
                     (
                         "You are a Retrieval-Augmented Generation assistant. "
-                        "Answer ONLY using the provided context. "
-                        "If the answer is not contained in the context, say you do not know."
+                        "Answer ONLY using the provided retrieved context. "
+                        "Use the conversation history only to understand references and follow-up questions. "
+                        "Do not use the conversation history as a source of factual information. "
+                        "If the answer is not contained in the retrieved context, say you do not know."
                     )
                 },
                 {
                     "role": "user",
-                    "content":
-                    f"Context:\n{context}\n\nQuestion:\n{question}"
+                    "content": prompt
                 }
             ],
             temperature=0.2
