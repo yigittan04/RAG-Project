@@ -1,3 +1,4 @@
+from uuid import UUID
 from fastapi import FastAPI, Depends
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -8,13 +9,15 @@ from database.database import engine, get_db
 from database.models import Base
 from database import crud
 from generation.prompt_builder import PromptBuilder
+from router.conversations import router as conversations_router
 
 import time
 
+app = FastAPI(title="RAG")
+
+app.include_router(conversations_router)
 
 Base.metadata.create_all(bind=engine)
-
-app = FastAPI(title="RAG")
 
 print("Loading vector database...")
 
@@ -27,6 +30,7 @@ print("Ready.")
 class Question(BaseModel):
     question: str
     conversation_id: str | None = None
+    user_id: str
 
 
 @app.post("/ask")
@@ -45,12 +49,14 @@ def ask(
             return {
                 "error": "Conversation not found."
             }
+
     else:
         conversation = crud.create_conversation(
-        db=db,
-        title=req.question[:50]
+            db=db,
+            user_id=req.user_id,
+            title=req.question[:50]
         )
-    
+
     previous_messages = crud.get_messages(
         db=db,
         conversation_id=conversation.id
@@ -65,11 +71,6 @@ def ask(
 
     question_embedding = model.embed(req.question)
 
-    retrieved_chunks = vector_store.search(
-        question_embedding,
-        top_k=3
-    )
-
     retrieval_start = time.perf_counter()
 
     retrieved_chunks = vector_store.search(
@@ -81,28 +82,23 @@ def ask(
         time.perf_counter() - retrieval_start
     ) * 1000
 
-    for rank, (similarity, chunk) in enumerate(
-    retrieved_chunks,
-    start=1
+    for rank, result in enumerate(
+        retrieved_chunks,
+        start=1
     ):
-        chunk_record = (
-            db.query(crud.Chunk)
-            .filter(crud.Chunk.content == chunk)
-            .first()
+
+        crud.create_retrieval_log(
+            db=db,
+            message_id=user_message.id,
+            chunk_id=result["chunk_id"],
+            similarity=result["similarity"],
+            latency_ms=retrieval_latency,
+            rank=rank
         )
 
-        if chunk_record:
-            crud.create_retrieval_log(
-                db=db,
-                message_id=user_message.id,
-                chunk_id=chunk_record.id,
-                similarity=similarity,
-                latency_ms=retrieval_latency,
-                rank=rank
-            )
-
     context_chunks = [
-        chunk for _, chunk in retrieved_chunks
+        result["content"]
+        for result in retrieved_chunks
     ]
 
     prompt = PromptBuilder.build(
@@ -127,13 +123,19 @@ def ask(
         "question": req.question,
         "answer": answer,
         "sources": [
-            chunk for _, chunk in retrieved_chunks
+            result["content"]
+            for result in retrieved_chunks
         ]
     }
 
 @app.get("/")
-def root():
-    return {
-        "message": "RAG API is running.",
-        "docs": "/docs"
-    }
+def get_conversations(
+    user_id: UUID,
+    db: Session = Depends(get_db)
+):
+    conversations = crud.get_user_conversations(
+        db=db,
+        user_id=user_id
+    )
+
+    return conversations

@@ -29,3 +29,5 @@ security.py
 
 hf_cache/
 .cache/
+
+vector_store/
