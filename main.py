@@ -1,4 +1,3 @@
-from uuid import UUID
 from fastapi import FastAPI, Depends
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -127,15 +126,3 @@ def ask(
             for result in retrieved_chunks
         ]
     }
-
-@app.get("/")
-def get_conversations(
-    user_id: UUID,
-    db: Session = Depends(get_db)
-):
-    conversations = crud.get_user_conversations(
-        db=db,
-        user_id=user_id
-    )
-
-    return conversations
