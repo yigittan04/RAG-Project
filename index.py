@@ -3,12 +3,15 @@ import pickle
 import hashlib
 import faiss
 import numpy as np
+from dotenv import load_dotenv
 from preprocessing.loader import DocumentLoader
 from preprocessing.cleaner import TextCleaner
 from preprocessing.chunker import TextChunker
 from embeddings.embedding import EmbeddingModel
 from database.database import SessionLocal
 from database.models import Document, Chunk
+
+load_dotenv()
 
 
 DOCUMENT_PATH = "data/test.txt"
@@ -36,7 +39,12 @@ index = faiss.IndexFlatIP(dimension)
 
 index.add(embeddings)
 
-uploaded_by="f8c06c99-31b7-498f-9260-69fbff3b2e75"
+uploaded_by = os.getenv("INDEX_USER_ID")
+
+if not uploaded_by:
+    raise ValueError(
+        "INDEX_USER_ID environment variable is not set."
+    )
 
 db = SessionLocal()
 
@@ -83,6 +91,7 @@ try:
     metadata = [
         {
             "chunk_id": str(chunk.id),
+            "document_id": str(document.id),
             "content": chunk.content
         }
         for chunk in chunk_records

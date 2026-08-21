@@ -189,6 +189,26 @@ def create_document(
 
     return document
 
+def update_document_status(
+    db: Session,
+    document_id,
+    status
+):
+    document = get_document(
+        db,
+        document_id
+    )
+
+    if document is None:
+        return None
+
+    document.status = status
+
+    db.commit()
+    db.refresh(document)
+
+    return document
+
 def get_document(
     db: Session,
     document_id

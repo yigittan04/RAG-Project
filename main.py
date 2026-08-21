@@ -3,25 +3,28 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from generator.generator import Generator
 from embeddings.embedding import EmbeddingModel
-from retrieval.vector_store import VectorStore
+from retrieval.store import vector_store
 from database.database import engine, get_db
 from database.models import Base
 from database import crud
 from generation.prompt_builder import PromptBuilder
 from router.conversations import router as conversations_router
+from router.documents import router as documents_router
+from router.auth import router as auth_router
 
 import time
 
 app = FastAPI(title="RAG")
 
 app.include_router(conversations_router)
+app.include_router(documents_router)
+app.include_router(auth_router)
 
 Base.metadata.create_all(bind=engine)
 
 print("Loading vector database...")
 
 model = EmbeddingModel()
-vector_store = VectorStore()
 
 print("Ready.")
 
@@ -30,6 +33,7 @@ class Question(BaseModel):
     question: str
     conversation_id: str | None = None
     user_id: str
+    document_id: str | None = None
 
 
 @app.post("/ask")
@@ -74,7 +78,8 @@ def ask(
 
     retrieved_chunks = vector_store.search(
         question_embedding,
-        top_k=3
+        top_k=3,
+        document_id=req.document_id
     )
 
     retrieval_latency = (

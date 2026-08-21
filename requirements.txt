@@ -10,3 +10,6 @@ pymupdf
 python-docx
 ollama
 tqdm
+python-multipart
+passlib[bcrypt]
+python-jose[cryptography]

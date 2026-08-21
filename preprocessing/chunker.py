@@ -23,6 +23,15 @@ class TextChunker:
         overlap: int = 40
     ) -> list[str]:
 
+        if chunk_size <= 0:
+            raise ValueError("chunk_size must be greater than 0.")
+
+        if overlap < 0:
+            raise ValueError("overlap cannot be negative.")
+
+        if overlap >= chunk_size:
+            raise ValueError("overlap must be smaller than chunk_size.")
+
         words = text.split()
 
         chunks = []
@@ -35,15 +44,6 @@ class TextChunker:
 
             chunks.append(" ".join(current_chunk))
 
-            start += chunk_Size - overlap
-
-            if chunk_size <= 0:
-                raise ValueError("chunk_size must be greater than 0.")
-
-            if overlap < 0:
-                raise ValueError("overlap cannot be negative.")
-
-            if overlap >= chunk_size:
-                raise ValueError("overlap must be smaller than chunk_size.")
+            start += chunk_size - overlap
 
         return chunks
