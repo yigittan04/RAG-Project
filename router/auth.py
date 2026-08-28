@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from database.database import get_db
 from database import crud
-from security import hash_password
+from security import hash_password, verify_password, create_access_token, get_current_user
 
 
 router = APIRouter(
@@ -12,6 +12,9 @@ router = APIRouter(
     tags=["Authentication"]
 )
 
+class LoginRequest(BaseModel):
+    email: str
+    password: str
 
 class RegisterRequest(BaseModel):
     username: str
@@ -64,4 +67,62 @@ def register(
         "email": user.email,
         "is_active": user.is_active,
         "is_admin": user.is_admin
+    }
+
+@router.post("/login")
+def login(
+    req: LoginRequest,
+    db: Session = Depends(get_db)
+):
+
+    user = crud.get_user_by_email(
+        db=db,
+        email=req.email
+    )
+
+    if user is None:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid email or password."
+        )
+
+    if not verify_password(
+        req.password,
+        user.hashed_password
+    ):
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid email or password."
+        )
+
+    if not user.is_active:
+        raise HTTPException(
+            status_code=403,
+            detail="User account is inactive."
+        )
+
+    crud.update_last_login(
+        db=db,
+        user=user
+    )
+
+    access_token = create_access_token(
+        user_id=str(user.id)
+    )
+
+    return {
+        "access_token": access_token,
+        "token_type": "bearer"
+    }
+
+@router.get("/me")
+def get_me(
+    current_user = Depends(get_current_user)
+):
+    return {
+        "id": str(current_user.id),
+        "username": current_user.username,
+        "email": current_user.email,
+        "is_active": current_user.is_active,
+        "is_admin": current_user.is_admin
     }

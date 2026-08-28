@@ -1,18 +1,21 @@
-from fastapi import FastAPI, Depends
-from pydantic import BaseModel
+from fastapi import FastAPI, Depends, HTTPException
+from pydantic import BaseModel, Field
+from uuid import UUID
 from sqlalchemy.orm import Session
 from generator.generator import Generator
 from embeddings.embedding import EmbeddingModel
 from retrieval.store import vector_store
 from database.database import engine, get_db
-from database.models import Base
+from database.models import Base, User
 from database import crud
 from generation.prompt_builder import PromptBuilder
 from router.conversations import router as conversations_router
 from router.documents import router as documents_router
 from router.auth import router as auth_router
+from security import get_current_user
 
 import time
+
 
 app = FastAPI(title="RAG")
 
@@ -30,35 +33,67 @@ print("Ready.")
 
 
 class Question(BaseModel):
-    question: str
-    conversation_id: str | None = None
-    user_id: str
-    document_id: str | None = None
+    question: str = Field(
+        ...,
+        min_length=1,
+        max_length=2000
+    )
+    conversation_id: UUID | None = None
+    document_id: UUID | None = None
 
 
 @app.post("/ask")
 def ask(
     req: Question,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
 
     if req.conversation_id:
+
         conversation = crud.get_conversation(
             db=db,
             conversation_id=req.conversation_id
         )
 
         if conversation is None:
-            return {
-                "error": "Conversation not found."
-            }
+            raise HTTPException(
+                status_code=404,
+                detail="Conversation not found."
+            )
+
+        if conversation.user_id != current_user.id:
+            raise HTTPException(
+                status_code=403,
+                detail="You do not have access to this conversation."
+            )
 
     else:
+
         conversation = crud.create_conversation(
             db=db,
-            user_id=req.user_id,
+            user_id=current_user.id,
             title=req.question[:50]
         )
+
+    if req.document_id:
+
+        document = crud.get_document(
+            db=db,
+            document_id=req.document_id
+        )
+
+        if document is None:
+            raise HTTPException(
+                status_code=404,
+                detail="Document not found."
+            )
+
+        if document.uploaded_by != current_user.id:
+            raise HTTPException(
+                status_code=403,
+                detail="You do not have access to this document."
+            )
 
     previous_messages = crud.get_messages(
         db=db,
@@ -72,7 +107,9 @@ def ask(
         content=req.question
     )
 
-    question_embedding = model.embed(req.question)
+    question_embedding = model.embed(
+        req.question
+    )
 
     retrieval_start = time.perf_counter()
 
@@ -111,7 +148,9 @@ def ask(
         conversation_history=previous_messages
     )
 
-    answer = Generator.answer(prompt)
+    answer = Generator.answer(
+        prompt
+    )
 
     assistant_message = crud.create_message(
         db=db,

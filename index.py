@@ -11,6 +11,7 @@ from embeddings.embedding import EmbeddingModel
 from database.database import SessionLocal
 from database.models import Document, Chunk
 
+
 load_dotenv()
 
 
@@ -92,9 +93,10 @@ try:
         {
             "chunk_id": str(chunk.id),
             "document_id": str(document.id),
-            "content": chunk.content
+            "content": chunk.content,
+            "embedding": embeddings[i].tolist()
         }
-        for chunk in chunk_records
+        for i, chunk in enumerate(chunk_records)
     ]
 
     os.makedirs("vector_store", exist_ok=True)

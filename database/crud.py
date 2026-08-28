@@ -48,6 +48,16 @@ def get_user_by_username(
         .first()
     )
 
+def get_user_by_id(
+    db: Session,
+    user_id
+):
+    return (
+        db.query(User)
+        .filter(User.id == user_id)
+        .first()
+    )
+
 def update_last_login(
     db: Session,
     user: User
@@ -240,6 +250,70 @@ def get_document_by_hash(
         .first()
     )
 
+def delete_retrieval_logs_by_chunk_ids(
+    db: Session,
+    chunk_ids
+):
+    if not chunk_ids:
+        return
+
+    db.query(RetrievalLog).filter(
+        RetrievalLog.chunk_id.in_(chunk_ids)
+    ).delete(
+        synchronize_session=False
+    )
+
+
+def delete_chunks_by_document(
+    db: Session,
+    document_id
+):
+    chunks = (
+        db.query(Chunk)
+        .filter(Chunk.document_id == document_id)
+        .all()
+    )
+
+    chunk_ids = [
+        chunk.id
+        for chunk in chunks
+    ]
+
+    delete_retrieval_logs_by_chunk_ids(
+        db=db,
+        chunk_ids=chunk_ids
+    )
+
+    db.query(Chunk).filter(
+        Chunk.document_id == document_id
+    ).delete(
+        synchronize_session=False
+    )
+
+    return chunk_ids
+
+
+def delete_document(
+    db: Session,
+    document_id
+):
+    document = get_document(
+        db=db,
+        document_id=document_id
+    )
+
+    if document is None:
+        return None
+
+    delete_chunks_by_document(
+        db=db,
+        document_id=document_id
+    )
+
+    db.delete(document)
+    db.commit()
+
+    return document
 
 
 def create_chunk(
@@ -257,8 +331,7 @@ def create_chunk(
     )
 
     db.add(chunk)
-    db.commit()
-    db.refresh(chunk)
+    db.flush()
 
     return chunk
 

@@ -4,11 +4,7 @@ from preprocessing.cleaner import TextCleaner
 from preprocessing.chunker import TextChunker
 from embeddings.embedding import EmbeddingModel
 from retrieval.store import vector_store
-
-import hashlib
-import os
-import uuid
-
+from database.models import User
 from fastapi import (
     APIRouter,
     UploadFile,
@@ -16,11 +12,16 @@ from fastapi import (
     Depends,
     HTTPException
 )
-
 from sqlalchemy.orm import Session
 
 from database.database import get_db
 from database import crud
+from security import get_current_user
+
+import hashlib
+import os
+import uuid
+
 
 
 router = APIRouter(
@@ -35,8 +36,11 @@ embedding_model = EmbeddingModel()
 @router.post("/upload")
 async def upload_document(
     file: UploadFile = File(...),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
+
+    uploaded_by = current_user.id
 
     if not file.filename:
         raise HTTPException(
@@ -85,14 +89,6 @@ async def upload_document(
 
     with open(storage_path, "wb") as f:
         f.write(file_data)
-
-    uploaded_by = os.getenv("INDEX_USER_ID")
-
-    if not uploaded_by:
-        raise HTTPException(
-            status_code=500,
-            detail="INDEX_USER_ID environment variable is not configured."
-        )
 
     document = crud.create_document(
         db=db,
@@ -147,9 +143,13 @@ async def upload_document(
             {
                 "chunk_id": str(chunk.id),
                 "document_id": str(document.id),
-                "content": chunk.content
+                "content": chunk.content,
+                "embedding": embedding
             }
-            for chunk in chunk_records
+            for chunk, embedding in zip(
+                chunk_records,
+                chunk_embeddings
+            )
         ]
 
         vector_store.add_chunks(
@@ -181,12 +181,12 @@ async def upload_document(
 
 @router.get("")
 def get_documents(
-    user_id: UUID,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     documents = crud.get_documents(
         db=db,
-        user_id=user_id
+        user_id=current_user.id
     )
 
     return documents
@@ -194,7 +194,8 @@ def get_documents(
 @router.get("/{document_id}")
 def get_document(
     document_id: UUID,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     document = crud.get_document(
         db=db,
@@ -207,4 +208,66 @@ def get_document(
             detail="Document not found."
         )
 
+    if document.uploaded_by != current_user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="You do not have access to this document."
+        )    
+
     return document
+
+@router.delete("/{document_id}")
+def delete_document(
+    document_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+
+    document = crud.get_document(
+        db=db,
+        document_id=document_id
+    )
+
+    if document is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Document not found."
+        )
+
+    if document.uploaded_by != current_user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="You do not have access to this document."
+        )
+
+    try:
+
+        if document.storage_path and os.path.exists(
+            document.storage_path
+        ):
+            os.remove(document.storage_path)
+
+        deleted = vector_store.delete_document(
+            document_id=document_id
+        )
+
+        if deleted:
+            vector_store.save()
+
+        crud.delete_document(
+            db=db,
+            document_id=document_id
+        )
+
+    except Exception:
+        db.rollback()
+
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to delete document."
+        )
+
+    return {
+        "message": "Document deleted successfully.",
+        "document_id": str(document_id)
+    }

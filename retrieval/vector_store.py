@@ -35,9 +35,16 @@ class VectorStore:
                 "Number of embeddings must match number of metadata records."
             )
 
-        self.index.add(embeddings)
+        for i, vector in enumerate(embeddings):
+            metadata[i]["embedding"] = vector.tolist()
 
-        self.metadata.extend(metadata)
+        self.index.add(
+            embeddings
+        )
+
+        self.metadata.extend(
+            metadata
+        )
 
     def save(self):
 
@@ -74,7 +81,7 @@ class VectorStore:
         scores, indices = self.index.search(
             embedding,
             search_k
-        )   
+        )
 
         results = []
 
@@ -111,3 +118,51 @@ class VectorStore:
                 break
 
         return results
+
+    def delete_document(
+        self,
+        document_id
+    ):
+
+        document_id = str(document_id)
+
+        remaining_metadata = [
+            metadata
+            for metadata in self.metadata
+            if metadata.get("document_id") != document_id
+        ]
+
+        if len(remaining_metadata) == len(self.metadata):
+            return False
+
+        if remaining_metadata:
+
+            embeddings = np.array(
+                [
+                    metadata["embedding"]
+                    for metadata in remaining_metadata
+                ],
+                dtype="float32"
+            )
+
+            dimension = embeddings.shape[1]
+
+            self.index = faiss.IndexFlatIP(
+                dimension
+            )
+
+            self.index.add(
+                embeddings
+            )
+
+        else:
+
+            dimension = self.index.d
+
+            self.index = faiss.IndexFlatIP(
+                dimension
+            )
+
+        self.metadata = remaining_metadata
+
+        return True
