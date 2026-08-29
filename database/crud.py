@@ -194,7 +194,7 @@ def create_document(
     )
 
     db.add(document)
-    db.commit()
+    db.flush()
     db.refresh(document)
 
     return document
@@ -214,7 +214,7 @@ def update_document_status(
 
     document.status = status
 
-    db.commit()
+    db.flush()
     db.refresh(document)
 
     return document
@@ -332,6 +332,7 @@ def create_chunk(
 
     db.add(chunk)
     db.flush()
+    db.refresh(chunk)
 
     return chunk
 

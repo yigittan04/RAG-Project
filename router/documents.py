@@ -87,22 +87,22 @@ async def upload_document(
         f"{document_id}{extension}"
     )
 
-    with open(storage_path, "wb") as f:
-        f.write(file_data)
-
-    document = crud.create_document(
-        db=db,
-        filename=file.filename,
-        uploaded_by=uploaded_by,
-        total_chunks=0,
-        file_size=len(file_data),
-        mime_type=file.content_type or "application/octet-stream",
-        storage_path=storage_path,
-        file_hash=file_hash,
-        status="processing"
-    )
-
     try:
+
+        with open(storage_path, "wb") as f:
+            f.write(file_data)
+
+        document = crud.create_document(
+            db=db,
+            filename=file.filename,
+            uploaded_by=uploaded_by,
+            total_chunks=0,
+            file_size=len(file_data),
+            mime_type=file.content_type or "application/octet-stream",
+            storage_path=storage_path,
+            file_hash=file_hash,
+            status="processing"
+        )
 
         text = DocumentLoader.load(
             storage_path
@@ -159,13 +159,41 @@ async def upload_document(
 
         vector_store.save()
 
+        document.total_chunks = len(chunk_records)
+
         crud.update_document_status(
             db=db,
             document_id=document.id,
             status="processed"
         )
 
+        db.commit()
+
+        db.refresh(document)
+
     except Exception:
+
+        db.rollback()
+
+        try:
+
+            deleted = vector_store.delete_document(
+                document_id=document_id
+            )
+
+            if deleted:
+                vector_store.save()
+
+        except Exception:
+            pass
+
+        try:
+
+            if os.path.exists(storage_path):
+                os.remove(storage_path)
+
+        except Exception:
+            pass
 
         raise HTTPException(
             status_code=500,

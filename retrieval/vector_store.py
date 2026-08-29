@@ -1,6 +1,7 @@
 import pickle
 import faiss
 import numpy as np
+import os
 
 
 class VectorStore:
@@ -48,19 +49,49 @@ class VectorStore:
 
     def save(self):
 
-        faiss.write_index(
-            self.index,
-            self.INDEX_PATH
+        index_temp_path = (
+            self.INDEX_PATH + ".tmp"
         )
 
-        with open(
-            self.METADATA_PATH,
-            "wb"
-        ) as f:
-            pickle.dump(
-                self.metadata,
-                f
+        metadata_temp_path = (
+            self.METADATA_PATH + ".tmp"
+        )
+
+        try:
+
+            faiss.write_index(
+                self.index,
+                index_temp_path
             )
+
+            with open(
+                metadata_temp_path,
+                "wb"
+            ) as f:
+                pickle.dump(
+                    self.metadata,
+                    f
+                )
+
+            os.replace(
+                index_temp_path,
+                self.INDEX_PATH
+            )
+
+            os.replace(
+                metadata_temp_path,
+                self.METADATA_PATH
+            )
+
+        except Exception:
+
+            if os.path.exists(index_temp_path):
+                os.remove(index_temp_path)
+
+            if os.path.exists(metadata_temp_path):
+                os.remove(metadata_temp_path)
+
+            raise
 
     def search(
         self,
