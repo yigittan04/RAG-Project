@@ -21,13 +21,15 @@ from security import get_current_user
 import hashlib
 import os
 import uuid
-
+import logging
 
 
 router = APIRouter(
     prefix="/documents",
     tags=["Documents"]
 )
+
+logger = logging.getLogger(__name__)
 
 UPLOAD_DIR = "uploads"
 
@@ -86,6 +88,8 @@ async def upload_document(
         UPLOAD_DIR,
         f"{document_id}{extension}"
     )
+
+    faiss_modified = False
 
     try:
 
@@ -157,6 +161,8 @@ async def upload_document(
             metadata=metadata
         )
 
+        faiss_modified = True
+
         vector_store.save()
 
         document.total_chunks = len(chunk_records)
@@ -171,21 +177,24 @@ async def upload_document(
 
         db.refresh(document)
 
-    except Exception:
+    except Exception as e:
+
+        logger.exception("Failed to upload document %s", document.id)
 
         db.rollback()
 
-        try:
+        if faiss_modified:
+            try:
+                deleted = vector_store.delete_document(
+                    document_id=document_id
+                )
 
-            deleted = vector_store.delete_document(
-                document_id=document_id
-            )
+                if deleted:
+                    vector_store.save()
+                
+            except Exception:
 
-            if deleted:
-                vector_store.save()
-
-        except Exception:
-            pass
+                logger.exception("Failed to rollback FAISS for document %s", document_id)
 
         try:
 
@@ -193,7 +202,8 @@ async def upload_document(
                 os.remove(storage_path)
 
         except Exception:
-            pass
+
+            logger.exception("Failed to delete uploaded file %s", storage_path)
 
         raise HTTPException(
             status_code=500,
