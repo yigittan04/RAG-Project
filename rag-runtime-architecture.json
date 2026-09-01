@@ -1,0 +1,193 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "RAG Project Runtime Architecture",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/yigittan04/RAG-Project",
+      "revision": "269006ac89681f456790b35e2fd48ae0fbd2d944"
+    },
+    "views": [
+      {
+        "id": "ingestion",
+        "label": "Document ingestion",
+        "focus": ["client", "api", "auth", "upload", "processing", "postgres", "jina", "faiss"],
+        "note": "Authenticated uploads are persisted, transformed into chunks, embedded remotely, and indexed locally."
+      },
+      {
+        "id": "rag-query",
+        "label": "RAG query",
+        "focus": ["client", "api", "auth", "retrieval", "faiss", "postgres", "generator", "groq"],
+        "note": "An authenticated question is embedded, matched against FAISS, assembled with history, and answered by Groq."
+      }
+    ]
+  },
+  "layout": {
+    "mode": "grid",
+    "cols": 5,
+    "gapX": 40,
+    "gapY": 48,
+    "cellW": 210,
+    "cellH": 88
+  },
+  "components": [
+    {
+      "id": "client",
+      "type": "external",
+      "label": "API Client",
+      "sublabel": "Browser / REST consumer",
+      "row": 1,
+      "col": 0,
+      "size": [180, 80],
+      "sources": [{"path": "README.md", "line": 62, "label": "REST API"}]
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "FastAPI Application",
+      "sublabel": "REST API routes",
+      "row": 1,
+      "col": 1,
+      "size": [180, 80],
+      "sources": [{"path": "main.py", "line": 18, "end_line": 24, "label": "app and routers"}, {"path": "main.py", "line": 41, "label": "/ask"}]
+    },
+    {
+      "id": "auth",
+      "type": "security",
+      "label": "JWT AuthZ",
+      "sublabel": "Bearer JWT; ownership checks",
+      "row": 0,
+      "col": 0,
+      "size": [180, 80],
+      "tag": "Trust gate",
+      "sources": [{"path": "router/auth.py", "line": 51, "end_line": 103, "label": "login and protected user route"}, {"path": "router/documents.py", "line": 32, "end_line": 40, "label": "protected upload route"}]
+    },
+    {
+      "id": "upload",
+      "type": "backend",
+      "label": "Document Upload",
+      "sublabel": "Multipart file → uploads/",
+      "row": 2,
+      "col": 1,
+      "size": [180, 80],
+      "sources": [{"path": "router/documents.py", "line": 32, "end_line": 112, "label": "upload endpoint"}]
+    },
+    {
+      "id": "processing",
+      "type": "backend",
+      "label": "Document Processing",
+      "sublabel": "Loader → cleaner → chunker",
+      "row": 2,
+      "col": 2,
+      "size": [180, 80],
+      "sources": [{"path": "router/documents.py", "line": 114, "end_line": 141, "label": "processing flow"}, {"path": "preprocessing/loader.py", "line": 33, "end_line": 46, "label": "format loader"}, {"path": "preprocessing/chunker.py", "line": 3, "end_line": 18, "label": "chunker"}]
+    },
+    {
+      "id": "postgres",
+      "type": "database",
+      "label": "PostgreSQL",
+      "sublabel": "Users, docs, chunks, logs",
+      "row": 0,
+      "col": 1,
+      "size": [180, 80],
+      "sources": [{"path": "database/models.py", "line": 9, "end_line": 121, "label": "relational models"}, {"path": "database/database.py", "line": 5, "end_line": 21, "label": "SQLAlchemy engine"}]
+    },
+    {
+      "id": "jina",
+      "type": "external",
+      "label": "Jina Embeddings v3",
+      "sublabel": "Embedding API",
+      "row": 2,
+      "col": 3,
+      "size": [180, 80],
+      "sources": [{"path": "embeddings/embedding.py", "line": 11, "end_line": 52, "label": "Jina API client"}]
+    },
+    {
+      "id": "faiss",
+      "type": "database",
+      "label": "FAISS Vector Store",
+      "sublabel": "Local vectors + metadata",
+      "row": 2,
+      "col": 4,
+      "size": [180, 80],
+      "sources": [{"path": "retrieval/vector_store.py", "line": 8, "end_line": 31, "label": "local index"}, {"path": "retrieval/vector_store.py", "line": 85, "end_line": 129, "label": "similarity search"}]
+    },
+    {
+      "id": "retrieval",
+      "type": "backend",
+      "label": "Retrieval",
+      "sublabel": "Top 3 matches",
+      "row": 1,
+      "col": 2,
+      "size": [180, 80],
+      "sources": [{"path": "main.py", "line": 98, "end_line": 126, "label": "retrieve and log"}]
+    },
+    {
+      "id": "generator",
+      "type": "backend",
+      "label": "RAG Generator",
+      "sublabel": "Context + history + question",
+      "row": 1,
+      "col": 3,
+      "size": [180, 80],
+      "sources": [{"path": "generation/prompt_builder.py", "line": 3, "end_line": 25, "label": "prompt assembly"}, {"path": "generator/generator.py", "line": 13, "end_line": 38, "label": "generation call"}]
+    },
+    {
+      "id": "groq",
+      "type": "external",
+      "label": "Groq LLM API",
+      "sublabel": "openai/gpt-oss-120b",
+      "row": 1,
+      "col": 4,
+      "size": [180, 80],
+      "sources": [{"path": "generator/generator.py", "line": 7, "end_line": 37, "label": "Groq model call"}]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "security-group",
+      "label": "Application trust boundary — JWT required for protected document and RAG routes",
+      "wraps": ["api", "auth", "upload", "processing", "retrieval", "generator", "postgres", "faiss"],
+      "pad": 20
+    },
+    {
+      "kind": "region",
+      "label": "External AI service boundary — API keys sent from application runtime",
+      "wraps": ["jina", "groq"],
+      "pad": 16
+    }
+  ],
+  "connections": [
+    {"id": "client-api", "from": "client", "to": "api", "label": "HTTPS / REST", "labelAt": [255, 320], "variant": "emphasis"},
+    {"id": "api-auth", "from": "api", "to": "auth", "label": "Bearer JWT", "variant": "security"},
+    {"id": "auth-postgres", "from": "auth", "to": "postgres", "label": "user lookup", "variant": "security"},
+    {"id": "api-postgres", "from": "api", "to": "postgres", "label": "application state"},
+    {"id": "api-upload", "from": "api", "to": "upload", "variant": "emphasis"},
+    {"id": "upload-processing", "from": "upload", "to": "processing", "variant": "emphasis"},
+    {"id": "processing-jina", "from": "processing", "to": "jina", "variant": "emphasis"},
+    {"id": "jina-faiss-ingest", "from": "jina", "to": "faiss", "label": "vectors + metadata", "labelAt": [1005, 446], "variant": "emphasis"},
+    {"id": "api-retrieval", "from": "api", "to": "retrieval", "label": "question"},
+    {"id": "retrieval-jina", "from": "retrieval", "to": "jina"},
+    {"id": "retrieval-faiss", "from": "retrieval", "to": "faiss", "fromSide": "bottom", "toSide": "top", "variant": "emphasis"},
+    {"id": "retrieval-generator", "from": "retrieval", "to": "generator", "label": "context"},
+    {"id": "generator-groq", "from": "generator", "to": "groq", "label": "RAG prompt", "variant": "emphasis"}
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Ingestion path",
+      "items": ["Upload persists a document record and chunks in PostgreSQL, then saves vectors and metadata to the local FAISS store.", "The synchronous upload handler uses loader → cleaner → paragraph chunker before Jina embedding."]
+    },
+    {
+      "dot": "cyan",
+      "title": "Query / RAG path",
+      "items": ["/ask verifies ownership, records messages, embeds the question, searches FAISS, logs ranked results, and builds the prompt.", "Groq receives retrieved context, history, and question through model openai/gpt-oss-120b."]
+    },
+    {
+      "dot": "rose",
+      "title": "Trust and persistence",
+      "items": ["Protected routes use HTTP Bearer JWT (HS256) and validate the active user; document and conversation ownership is enforced in route handlers.", "Jina and Groq are external HTTPS services called with runtime API keys; FAISS and upload files are local filesystem state."]
+    }
+  ]
+}
