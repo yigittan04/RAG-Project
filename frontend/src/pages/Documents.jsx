@@ -151,7 +151,17 @@ function Documents({ onNavigate }) {
                                     </div>
 
                                     <div>
-                                        <h3>{document.filename}</h3>
+                                        <h3
+                                            className="document-name-link"
+                                            onClick={() =>
+                                                onNavigate(
+                                                    "document-details",
+                                                    document.id
+                                                )
+                                            }
+                                        >
+                                            {document.filename}
+                                        </h3>
 
                                         <p>
                                             {document.mime_type || "Unknown type"}

@@ -167,6 +167,26 @@ export async function uploadDocument(token, file) {
   return data;
 }
 
+export async function getDocument(token, documentId) {
+  const response = await fetch(
+    `${API_BASE_URL}/documents/${documentId}`,
+    {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.detail || "Failed to load document");
+  }
+
+  return data;
+}
+
 export async function deleteDocument(token, documentId) {
   const response = await fetch(
     `${API_BASE_URL}/documents/${documentId}`,

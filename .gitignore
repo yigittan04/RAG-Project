@@ -43,3 +43,5 @@ frontend/public/icons.svg
 frontend/src/assets/hero.png
 frontend/src/assets/react.svg
 frontend/src/assets/vite.svg
+
+vector_store/faiss_index.bin

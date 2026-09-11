@@ -5,6 +5,7 @@ import Register from "./pages/Register";
 import Chat from "./pages/Chat";
 import Documents from "./pages/Documents";
 import Settings from "./pages/Settings";
+import DocumentDetails from "./pages/DocumentDetails";
 import "./App.css";
 
 function App() {
@@ -63,6 +64,15 @@ function App() {
 
     if (page === "documents") {
         return <Documents onNavigate={handleNavigate} />;
+    }
+
+    if (page === "document-details") {
+        return (
+            <DocumentDetails
+                documentId={selectedDocumentId}
+                onNavigate={handleNavigate}
+            />
+        );
     }
 
     if (page === "settings") {

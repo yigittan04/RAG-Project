@@ -685,3 +685,135 @@
 .delete-document-button {
     padding: 8px 14px;
 }
+
+.document-details-page {
+    min-height: 100vh;
+    background: #f5f7fb;
+}
+
+.document-details-main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px;
+}
+
+.back-to-documents-button {
+    border: none;
+    background: transparent;
+    padding: 0;
+    margin-bottom: 28px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.document-details-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 30px;
+    margin-bottom: 36px;
+}
+
+.document-details-icon {
+    font-size: 42px;
+    margin-bottom: 10px;
+}
+
+.document-details-header h1 {
+    margin: 0 0 8px;
+    font-size: 32px;
+    word-break: break-word;
+}
+
+.document-details-header p {
+    margin: 0;
+    color: #666;
+}
+
+.document-details-section {
+    margin-bottom: 30px;
+}
+
+.document-details-section h2 {
+    margin-bottom: 12px;
+    font-size: 20px;
+}
+
+.document-details-card {
+    background: white;
+    border: 1px solid #e1e5eb;
+    border-radius: 12px;
+    padding: 8px 20px;
+}
+
+.document-detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    padding: 16px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.document-detail-row:last-child {
+    border-bottom: none;
+}
+
+.document-detail-row span {
+    color: #666;
+}
+
+.document-detail-row strong {
+    text-align: right;
+    word-break: break-word;
+}
+
+.document-status {
+    text-transform: capitalize;
+}
+
+.document-status.processed {
+    color: #16803c;
+}
+
+.document-status.processing {
+    color: #b26a00;
+}
+
+.document-details-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.ask-document-large-button {
+    padding: 10px 18px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.delete-document-large-button {
+    padding: 10px 18px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.document-details-error {
+    padding: 14px 16px;
+    margin-top: 20px;
+    border-radius: 8px;
+    background: #ffe8e8;
+    color: #b00020;
+}
+
+.document-name-link {
+    cursor: pointer;
+}
+
+.document-name-link:hover {
+    text-decoration: underline;
+}
