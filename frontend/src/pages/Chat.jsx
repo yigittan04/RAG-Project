@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import {
     askQuestion,
@@ -7,7 +7,7 @@ import {
     getDocuments,
 } from "../services/api";
 
-function Chat({ onNavigate }) {
+function Chat({ onNavigate, initialDocumentId }) {
     const { token, user, logout } = useAuth();
 
     const [question, setQuestion] = useState("");
@@ -18,10 +18,18 @@ function Chat({ onNavigate }) {
     const [loadingConversations, setLoadingConversations] = useState(true);
 
     const [documents, setDocuments] = useState([]);
-    const [selectedDocumentId, setSelectedDocumentId] = useState("");
+    const [selectedDocumentId, setSelectedDocumentId] = useState ( initialDocumentId || "" );
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+
+    const messagesEndRef = useRef(null);
+
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({
+            behavior: "smooth",
+        });
+    }, [messages, loading]);
 
     useEffect(() => {
         async function loadConversations() {
@@ -163,11 +171,10 @@ function Chat({ onNavigate }) {
                         conversations.map((conversation) => (
                             <button
                                 key={conversation.id}
-                                className={`conversation-item ${
-                                    conversation.id === conversationId
-                                        ? "active"
-                                        : ""
-                                }`}
+                                className={`conversation-item ${conversation.id === conversationId
+                                    ? "active"
+                                    : ""
+                                    }`}
                                 onClick={() =>
                                     handleSelectConversation(
                                         conversation.id
@@ -256,11 +263,10 @@ function Chat({ onNavigate }) {
                             {messages.map((message, index) => (
                                 <div
                                     key={index}
-                                    className={`message ${
-                                        message.role === "user"
-                                            ? "user-message"
-                                            : "assistant-message"
-                                    }`}
+                                    className={`message ${message.role === "user"
+                                        ? "user-message"
+                                        : "assistant-message"
+                                        }`}
                                 >
                                     <div className="message-role">
                                         {message.role === "user"
@@ -308,6 +314,7 @@ function Chat({ onNavigate }) {
                                     </div>
                                 </div>
                             )}
+                            <div ref={messagesEndRef} />
                         </div>
                     )}
                 </div>

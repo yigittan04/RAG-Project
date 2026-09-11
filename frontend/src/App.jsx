@@ -9,8 +9,15 @@ import "./App.css";
 
 function App() {
     const { loading, isAuthenticated } = useAuth();
+
     const [showRegister, setShowRegister] = useState(false);
     const [page, setPage] = useState("chat");
+    const [selectedDocumentId, setSelectedDocumentId] = useState(null);
+
+    function handleNavigate(nextPage, documentId = null) {
+        setPage(nextPage);
+        setSelectedDocumentId(documentId);
+    }
 
     if (loading) {
         return <div className="loading">Loading...</div>;
@@ -25,7 +32,9 @@ function App() {
                     <div className="auth-switch">
                         <p>
                             Already have an account?{" "}
-                            <button onClick={() => setShowRegister(false)}>
+                            <button
+                                onClick={() => setShowRegister(false)}
+                            >
                                 Sign in
                             </button>
                         </p>
@@ -41,7 +50,9 @@ function App() {
                 <div className="auth-switch">
                     <p>
                         Don't have an account?{" "}
-                        <button onClick={() => setShowRegister(true)}>
+                        <button
+                            onClick={() => setShowRegister(true)}
+                        >
                             Create one
                         </button>
                     </p>
@@ -51,15 +62,19 @@ function App() {
     }
 
     if (page === "documents") {
-        return <Documents onNavigate={setPage} />;
+        return <Documents onNavigate={handleNavigate} />;
     }
 
     if (page === "settings") {
-        return <Settings onNavigate={setPage} />;
+        return <Settings onNavigate={handleNavigate} />;
     }
 
-    return <Chat onNavigate={setPage} />;
-
+    return (
+        <Chat
+            onNavigate={handleNavigate}
+            initialDocumentId={selectedDocumentId}
+        />
+    );
 }
 
 export default App;

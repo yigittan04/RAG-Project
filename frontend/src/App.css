@@ -644,3 +644,44 @@
     background: #ffe8e8;
     color: #b00020;
 }
+
+.sources {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.sources strong {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 13px;
+}
+
+.source {
+    padding: 8px 10px;
+    margin-top: 6px;
+    background: #f5f7fa;
+    border-radius: 6px;
+    font-size: 13px;
+    line-height: 1.4;
+    color: #555;
+    word-break: break-word;
+}
+
+.document-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.ask-document-button {
+    padding: 8px 14px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.delete-document-button {
+    padding: 8px 14px;
+}

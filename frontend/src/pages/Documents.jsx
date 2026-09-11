@@ -163,17 +163,28 @@ function Documents({ onNavigate }) {
                                     </div>
                                 </div>
 
-                                <button
-                                    className="delete-document-button"
-                                    onClick={() =>
-                                        handleDelete(
-                                            document.id,
-                                            document.filename
-                                        )
-                                    }
-                                >
-                                    Delete
-                                </button>
+                                <div className="document-actions">
+                                    <button
+                                        className="ask-document-button"
+                                        onClick={() =>
+                                            onNavigate("chat", document.id)
+                                        }
+                                    >
+                                        Ask about this
+                                    </button>
+
+                                    <button
+                                        className="delete-document-button"
+                                        onClick={() =>
+                                            handleDelete(
+                                                document.id,
+                                                document.filename
+                                            )
+                                        }
+                                    >
+                                        Delete
+                                    </button>
+                                </div>
                             </div>
                         ))}
                     </div>
