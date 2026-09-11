@@ -24,7 +24,11 @@ text = DocumentLoader.load(DOCUMENT_PATH)
 
 clean_text = TextCleaner.clean(text)
 
-chunks = TextChunker.chunk_by_paragraph(clean_text)
+chunks = TextChunker.chunk_by_words(
+    clean_text,
+    chunk_size=200,
+    overlap=40
+)
 
 print(f"Created {len(chunks)} chunks.")
 

@@ -52,6 +52,26 @@ class Question(BaseModel):
     conversation_id: UUID | None = None
     document_id: UUID | None = None
 
+def is_broad_document_question(question: str) -> bool:
+    question = question.lower().strip()
+
+    broad_phrases = [
+        "summarize",
+        "summary",
+        "summarise",
+        "overview",
+        "main topics",
+        "what are the topics",
+        "what topics",
+        "what does this document cover",
+        "what is this document about",
+        "give me an overview",
+    ]
+
+    return any(
+        phrase in question
+        for phrase in broad_phrases
+    )
 
 @app.post("/ask")
 def ask(
@@ -124,12 +144,31 @@ def ask(
 
     retrieval_start = time.perf_counter()
 
-    retrieved_chunks = vector_store.search(
-        question_embedding,
-        top_k=3,
-        document_id=req.document_id,
-        user_id=current_user.id
-    )
+    if req.document_id and is_broad_document_question(req.question):
+
+        document_chunks = crud.get_chunks(
+            db=db,
+            document_id=req.document_id
+        )
+
+        retrieved_chunks = [
+            {
+                "chunk_id": str(chunk.id),
+                "document_id": str(chunk.document_id),
+                "content": chunk.content,
+                "similarity": 1.0
+            }
+            for chunk in document_chunks
+        ]
+
+    else:
+
+        retrieved_chunks = vector_store.search(
+            question_embedding,
+            top_k=3,
+            document_id=req.document_id,
+            user_id=current_user.id
+        )
 
     retrieval_latency = (
         time.perf_counter() - retrieval_start

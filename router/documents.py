@@ -116,8 +116,10 @@ async def upload_document(
             text
         )
 
-        chunks = TextChunker.chunk_by_paragraph(
-            clean_text
+        chunks = TextChunker.chunk_by_words(
+            clean_text,
+            chunk_size=200,
+            overlap=40
         )
 
         if not chunks:
