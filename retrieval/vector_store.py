@@ -126,7 +126,7 @@ class VectorStore:
 
         results = []
 
-        SIMILARITY_THRESHOLD = 0.60
+        SIMILARITY_THRESHOLD = 0.40
 
         for score, idx in zip(
             scores[0],
