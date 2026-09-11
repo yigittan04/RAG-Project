@@ -11,15 +11,24 @@ class VectorStore:
 
     def __init__(self):
 
-        self.index = faiss.read_index(
-            self.INDEX_PATH
-        )
+        os.makedirs("vector_store", exist_ok=True)
 
-        with open(
-            self.METADATA_PATH,
-            "rb"
-        ) as f:
-            self.metadata = pickle.load(f)
+        if os.path.exists(self.INDEX_PATH) and os.path.exists(self.METADATA_PATH):
+
+            self.index = faiss.read_index(
+                self.INDEX_PATH
+            )
+
+            with open(
+                self.METADATA_PATH,
+                "rb"
+            ) as f:
+                self.metadata = pickle.load(f)
+
+        else:
+
+            self.index = faiss.IndexFlatIP(1024)
+            self.metadata = []
 
     def add_chunks(
         self,
