@@ -97,7 +97,8 @@ class VectorStore:
         self,
         embedding,
         top_k=3,
-        document_id=None
+        document_id=None,
+        user_id=None
     ):
 
         embedding = np.array(
@@ -116,7 +117,7 @@ class VectorStore:
 
         results = []
 
-        SIMILARITY_THRESHOLD = 0.70
+        SIMILARITY_THRESHOLD = 0.60
 
         for score, idx in zip(
             scores[0],
@@ -130,6 +131,10 @@ class VectorStore:
                 continue
 
             metadata = self.metadata[idx]
+
+            if user_id is not None:
+                if metadata.get("uploaded_by") != str(user_id):
+                    continue
 
             if document_id is not None:
 

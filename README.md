@@ -55,7 +55,7 @@ The API also returns the document chunks that were used to generate the response
 ## LLM
 
 - Groq API
-- Llama 3.3 70B Versatile
+- GPT-OSS-120B
 
 ## Document Processing
 

@@ -13,11 +13,22 @@ from router.conversations import router as conversations_router
 from router.documents import router as documents_router
 from router.auth import router as auth_router
 from security import get_current_user
+from fastapi.middleware.cors import CORSMiddleware
 
 import time
 
 
 app = FastAPI(title="RAG")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(conversations_router)
 app.include_router(documents_router)
@@ -116,7 +127,8 @@ def ask(
     retrieved_chunks = vector_store.search(
         question_embedding,
         top_k=3,
-        document_id=req.document_id
+        document_id=req.document_id,
+        user_id=current_user.id
     )
 
     retrieval_latency = (

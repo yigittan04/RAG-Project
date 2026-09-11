@@ -147,6 +147,7 @@ async def upload_document(
             {
                 "chunk_id": str(chunk.id),
                 "document_id": str(document.id),
+                "uploaded_by": str(uploaded_by),
                 "content": chunk.content,
                 "embedding": embedding
             }

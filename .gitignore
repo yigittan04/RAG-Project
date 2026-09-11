@@ -31,4 +31,15 @@ hf_cache/
 .cache/
 
 vector_store/
+uploads/vector_store/faiss_index.bin
+rag-runtime-architecture.visual-check.*
+
+uploads/rag-runtime-architecture.visual-check.*
+
 uploads/
+
+frontend/public/favicon.svg
+frontend/public/icons.svg
+frontend/src/assets/hero.png
+frontend/src/assets/react.svg
+frontend/src/assets/vite.svg
