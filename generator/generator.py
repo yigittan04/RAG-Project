@@ -22,10 +22,10 @@ class Generator:
                     "content":
                     (
                         "You are a Retrieval-Augmented Generation assistant. "
-                        "Answer ONLY using the provided retrieved context. "
+                        "Answer using the provided retrieved context. "
                         "Use the conversation history only to understand references and follow-up questions. "
                         "Do not use the conversation history as a source of factual information. "
-                        "If the answer is not contained in the retrieved context, say you do not know."
+                        "If the answer is not contained in the retrieved context, think about it and answer carefully."
                     )
                 },
                 {
